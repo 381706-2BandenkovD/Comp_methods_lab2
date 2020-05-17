@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, TextBox
 from math import cos
+from tqdm import tqdm
+from time import *
 
 pi = 3.1415926535
 
@@ -30,43 +32,117 @@ def tridiagAlg(a, b, c, func, count):#Метод прогонки
         res[i] = (A[i] * res[i + 1] + B[i])
     return res
 
-def addGraphPhase(graph_axes, x, y):
-     graph_axes.plot(x, y)
-     plt.draw()
-
 def onButtonAddClicked(event):
-    global graph_axes, flag
-    return flag == 1
-
-    addGraphPhase(graph_axes, x, y)
-
+    global graph_axes
+    pbar = tqdm(total=100)
+    for i in range(10):
+        sleep(0.1)
+        pbar.update(10)
+    pbar.close()
+    solution(graph_axes)
+    
 def onButtonСreateCliked(event):
-    global flag
-    return flag == 2
+    global graph_axes
+    pbar = tqdm(total=100)
+    for i in range(10):
+        sleep(0.1)
+        pbar.update(10)
+    pbar.close()
+    alternativeSolution(graph_axes)
 
 def onButtonClearClicked(event):
     global graph_axes
     graph_axes.clear()
     graph_axes.grid()
-    plt.draw() #отображет созданные графики
+    plt.draw() 
+
+def alternativeSolution(graph_axes):
+    global x_val, resA, func_val
+    graph_axes.plot(x_val, resA, 'g')
+    graph_axes.plot(x_val, func_val, 'b')
+    plt.draw()
+
+def solution(graph_axes):
+    global x_val, resA, func_val
+    func_val = []
+    bfunc_val = []
+    slices1 = [[]]
+    slices2 = [[]]
+    count_N = int(_len/delta_x)
+    count_T = int(time/delta_t)
+    # Вычисление значений функции и заполнение первого слоя сетки
+    for i in range(0, count_N):
+        func_val.append(func(i*delta_x, _len, f1, f2))
+        bfunc_val.append(bfunc(i*delta_x, _len, b0, b1, b2))
+        slices1[0].append(func_val[i])
+        slices2[0].append(func_val[i])
+    # Заполнение матрицы коэффициентов для метода прогонки
+    coeff_a = [0.0]
+    coeff_b = [1.0]
+    coeff_c = [-1.0]
+    for i in range(1, count_N - 1):
+        coeff_a.append(delta_t / (delta_x * delta_x))
+        coeff_b.append(-1 - 2*delta_t / (delta_x * delta_x))
+        coeff_c.append(delta_t / (delta_x * delta_x))
+    coeff_a.append(-1.0)
+    coeff_b.append(1.0)
+    coeff_c.append(0.0)
+    #Вычисление последующих слоев сетки
+    for i in range(1, count_T):
+        I = integrate(delta_x, bfunc_val)
+        fu = [0]
+        fu2 = [0]
+        slices1.append([])
+        slices2.append([])
+        #Вычисляем правую часть системы для прогонки
+        for j in range(1, count_N - 1):
+            fu.append(-slices1[i - 1][j] * ((bfunc_val[j] - I) * delta_t * delta_t  + 1.0))
+            fu2.append(-slices2[i - 1][j] * (bfunc_val[j] * delta_t * delta_t + 1.0))
+        fu.append(0)
+        fu2.append(0)
+        #Метод прогонки для системы из B
+        res = tridiagAlg(coeff_a, coeff_b, coeff_c, fu, count_N)
+        for j in range(0, count_N):
+            slices1[i].append(res[j])
+        #Метод прогонки для системы из A
+        res2 = tridiagAlg(coeff_a, coeff_b, coeff_c, fu2, count_N)
+        for j in range(0, count_N):
+            slices2[i].append(res2[j])
+    I = integrate(delta_x, slices2[count_T - 1])
+    resB = []
+    resA = []
+    for j in range(0, count_N):
+        resA.append(slices2[count_T - 1][j] / I)
+        resB.append(slices1[count_T - 1][j])
+    x_val = []
+    for i in range(0, count_N):
+        x_val.append(i * delta_x)
+    graph_axes.plot(x_val, func_val, 'b')
+    graph_axes.plot(x_val, slices1[count_T - 1], 'r')
+    plt.draw()
 
 if __name__ == "__main__":
-    global graph_axes, flag
-    x = list()
-    y = list()
-    flag = 0
+    global graph_axes, flag, b0, b1, b2, f0, f1, f2, delta_t, delta_x, time, _len
+    global func_val, resA, resB, x_val, func_val, bfunc_val, slices1, slices2
     func_val = []
     resA = []
     resB = []
     x_val = []
 
+    pbar = tqdm(total=100)
+    for i in range(10):
+        sleep(0.1)
+        pbar.update(10)
+    pbar.close()
+    
+    func_val = []
+    bfunc_val = []
+    slices1 = [[]]
+    slices2 = [[]]
+
     fig, graph_axes = plt.subplots()
     graph_axes.grid()
     fig.subplots_adjust(left=0.07, right=0.95, top=0.95, bottom=0.4)
-#Созданет кнопку добавить
-    axes_button_add = plt.axes([0.37, 0.05, 0.28, 0.075])
-    button_add = Button(axes_button_add, 'Добавить')
-    button_add.on_clicked(onButtonAddClicked)
 
     def submitTime(text):
         global time
@@ -112,7 +188,8 @@ if __name__ == "__main__":
     def submitF0(text):
         global f0
         try:
-            f0 = float(text)
+            #f0 = float(text)
+            f0 = 1 / _len
         except ValueError:
             print("Вы пытаетесь ввести не число")
             print("Для параметра 'f0' были использованы значения по умолчанию = ", f0)
@@ -149,6 +226,9 @@ if __name__ == "__main__":
             print("Вы пытаетесь ввести не число")
             print("Для параметра 'delta_x' были использованы значения по умолчанию = ", delta_x)
 
+    axes_button_add = plt.axes([0.37, 0.05, 0.28, 0.075])
+    button_add = Button(axes_button_add, 'Добавить')
+    button_add.on_clicked(onButtonAddClicked)
 
     axes_button_clear = plt.axes([0.07, 0.05, 0.28, 0.075])
     button_clear = Button(axes_button_clear, 'Очистить')
@@ -189,13 +269,13 @@ if __name__ == "__main__":
     time_box.on_submit(submitTime)
 
     axbox = plt.axes([0.38, 0.15, 0.10, 0.07])
-    deltax_box = TextBox(axbox, 'Шаг по \n х =', initial= "0.2")
+    deltax_box = TextBox(axbox, 'Шаг    \nпо х =', initial= "0.2")
     delta_x = 0.2
     deltax_box.on_submit(submitDeltaX)
 
     axbox = plt.axes([0.55, 0.15, 0.10, 0.07])
-    f0_box = TextBox(axbox, 'f(0)=', initial= "0.1429")
-    f0 = 0.1429
+    f0_box = TextBox(axbox, 'f(0)=', initial= "1/len")
+    f0 = 1/_len #0.1429
     f0_box.on_submit(submitF0)
 
     axbox = plt.axes([0.70, 0.15, 0.10, 0.07])
@@ -207,79 +287,5 @@ if __name__ == "__main__":
     f2_box = TextBox(axbox, 'f(2)=', initial= "0")
     f2 = 0.
     f2_box.on_submit(submitF2)
-
-
-    if flag == 1:
-        fig, graph_axes = plt.subplots(figsize=(6, 4))
-        graph_axes.grid()
-        func_val = []
-        bfunc_val = []
-
-        slices1 = [[]]
-        slices2 = [[]]
-        count_N = int(_len/delta_x)
-        count_T = int(time/delta_t)
-
-        # Вычисление значений функции и заполнение первого слоя сетки
-        for i in range(0, count_N):
-            func_val.append(func(i*delta_x, _len, f1, f2))
-            bfunc_val.append(bfunc(i*delta_x, _len, b0, b1, b2))
-            slices1[0].append(func_val[i])
-            slices2[0].append(func_val[i])
-
-        # Заполнение матрицы коэффициентов для метода прогонки
-        coeff_a = [0.0]
-        coeff_b = [1.0]
-        coeff_c = [-1.0]
-        for i in range(1, count_N - 1):
-            coeff_a.append(delta_t / (delta_x * delta_x))
-            coeff_b.append(-1 - 2*delta_t / (delta_x * delta_x))
-            coeff_c.append(delta_t / (delta_x * delta_x))
-        coeff_a.append(-1.0)
-        coeff_b.append(1.0)
-        coeff_c.append(0.0)
-
-        #Вычисление последующих слоев сетки
-        for i in range(1, count_T):
-            I = integrate(delta_x, bfunc_val)
-            fu = [0]
-            fu2 = [0]
-            slices1.append([])
-            slices2.append([])
-
-            #Вычисляем правую часть системы для прогонки
-            for j in range(1, count_N - 1):
-                fu.append(-slices1[i - 1][j] * ((bfunc_val[j] - I) * delta_t * delta_t  + 1.0))
-                fu2.append(-slices2[i - 1][j] * (bfunc_val[j] * delta_t * delta_t + 1.0))
-            fu.append(0)
-            fu2.append(0)
-
-            #Метод прогонки для системы из B
-            res = tridiagAlg(coeff_a, coeff_b, coeff_c, fu, count_N)
-            for j in range(0, count_N):
-                slices1[i].append(res[j])
-
-            #Метод прогонки для системы из A
-            res2 = tridiagAlg(coeff_a, coeff_b, coeff_c, fu2, count_N)
-            for j in range(0, count_N):
-                slices2[i].append(res2[j])
-
-        I = integrate(delta_x, slices2[count_T - 1])
-
-        resB = []
-        resA = []
-        for j in range(0, count_N):
-            resA.append(slices2[count_T - 1][j] / I)
-            resB.append(slices1[count_T - 1][j])
-
-        x_val = []
-
-        for i in range(0, count_N):
-            x_val.append(i * delta_x)
-
-        graph_axes.plot(x_val, func_val, 'b')
-        graph_axes.plot(x_val, slices1[count_T - 1], 'r')
-        graph_axes.draw()
-
 
     plt.show()

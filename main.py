@@ -2,8 +2,11 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, TextBox
 from math import cos
 from tqdm import tqdm
-from time import *
-plt.rcParams.update({'figure.figsize': '8, 6', "figure.facecolor": 'darkgoldenrod', 'axes.edgecolor': 'r'})
+from time import sleep
+from datetime import datetime
+import PySimpleGUI as sg
+import time
+plt.rcParams.update({'figure.figsize': '9.5, 6', "figure.facecolor": 'lightgoldenrodyellow', 'axes.edgecolor': 'darkgoldenrod'})
 
 pi = 3.1415926535
 
@@ -34,25 +37,17 @@ def tridiagAlg(a, b, c, func, count):#Метод прогонки
     return res
 
 def onButtonAddClicked(event):
-    global graph_axes
-    pbar = tqdm(total=100)
-    for i in range(10):
-        sleep(0.1)
-        pbar.update(10)
-    pbar.close()
-    #tim1 = time.time()
-    solution(graph_axes)
-    #tim2 = time.time()
-    #time_ = tim2 - tim1
-    #print("Время выполнения: ", time_)
+    global graph_axesm, delta_t, delta_x
+    pogreshnostPython = 0.0000001
+    k = delta_t / (delta_x * delta_x) + pogreshnostPython
+    if (k < 0.25):
+        solution(graph_axes)
+    else:       
+        sg.Popup('Error!', 'Шаг по x и шаг по t не удовлетворяют условию устойчивости:\nτ/(h*h) < 1/4')
+
 
 def onButtonСreateCliked(event):
     global graph_axes
-    pbar = tqdm(total=100)
-    for i in range(10):
-        sleep(0.1)
-        pbar.update(10)
-    pbar.close()
     alternativeSolution(graph_axes)
 
 def onButtonClearClicked(event):
@@ -63,11 +58,38 @@ def onButtonClearClicked(event):
 
 def alternativeSolution(graph_axes):
     global x_val, resA, func_val
-    graph_axes.plot(x_val, resA, 'greenyellow')
+    graph_axes.plot(x_val, resA, label = 'Конечная температура Часть(А)', color  ='greenyellow')
+    graph_axes.legend()
     plt.draw()
 
+def progressBarSolution():
+    global resA, resB, func_val, bfunc_val 
+    start_time = datetime.now()
+    progressbar = [[sg.ProgressBar(len(func_val), orientation='h', size=(41, 10), key='progressbar')]]
+    outputwin = [[sg.Output(size=(60,7))]]
+
+    layout = [
+        [sg.Frame('Progress',layout= progressbar)],
+        [sg.Frame('Output', layout = outputwin)],
+        [sg.Cancel()]
+    ]
+
+    window = sg.Window('Custom Progress Meter', layout)
+    progress_bar = window['progressbar']
+
+    event, values = window.read(timeout=10)
+    for i,item in enumerate(func_val):
+        print("φ[", i, "] = ", item, "   b[", i, "] = ", bfunc_val[i] )
+        sleep(0.003)
+        progress_bar.UpdateBar(i + 1)
+    end_time = datetime.now()
+    print('Время выполнения: {}'.format(end_time - start_time))
+    if event == 'Cancel'  or event is None:
+        window.close()
+
+
 def solution(graph_axes):
-    global x_val, resA, func_val
+    global x_val, resA, resB, func_val, bfunc_val
     func_val = []
     bfunc_val = []
     slices1 = [[]]
@@ -121,13 +143,16 @@ def solution(graph_axes):
     x_val = []
     for i in range(0, count_N):
         x_val.append(i * delta_x)
-    graph_axes.plot(x_val, func_val, 'b')
-    graph_axes.plot(x_val, slices1[count_T - 1], 'r')
+    progressBarSolution()
+    graph_axes.plot(x_val, func_val, label = 'Начальная температура', color ='b')
+    graph_axes.plot(x_val, slices1[count_T - 1], label = 'Конечная температура', color ='r')
+    graph_axes.legend()
     plt.draw()
 
 if __name__ == "__main__":
     global graph_axes, flag, b0, b1, b2, f0, f1, f2, delta_t, delta_x, time, _len
-    global func_val, resA, resB, x_val, func_val, bfunc_val, slices1, slices2
+    global button_pb, func_val, resA, resB, x_val, func_val, bfunc_val, slices1, slices2
+    global start_time, end_time
     func_val = []
     resA = []
     resB = []
@@ -140,7 +165,7 @@ if __name__ == "__main__":
 
     fig, graph_axes = plt.subplots()
     graph_axes.grid()
-    fig.subplots_adjust(left=0.07, right=0.95, top=0.95, bottom=0.4)
+    fig.subplots_adjust(left=0.37, right=0.98, top=0.95, bottom=0.2)
     graph_axes.set_xlabel('X')
     graph_axes.set_ylabel('T')
 
@@ -226,66 +251,61 @@ if __name__ == "__main__":
             print("Вы пытаетесь ввести не число")
             print("Для параметра 'delta_x' были использованы значения по умолчанию = ", delta_x)
 
-    axes_button_add = plt.axes([0.37, 0.05, 0.28, 0.075])
+    axes_button_add = plt.axes([0.37, 0.049, 0.29, 0.09])
     button_add = Button(axes_button_add, 'Решение')
     button_add.on_clicked(onButtonAddClicked)
 
-    axes_button_clear = plt.axes([0.07, 0.05, 0.28, 0.075])
+    axes_button_clear = plt.axes([0.05, 0.049, 0.29, 0.09])
     button_clear = Button(axes_button_clear, 'Очистить')
     button_clear.on_clicked(onButtonClearClicked)
 
-    axes_button_create = plt.axes([0.67, 0.05, 0.28, 0.075])
+    axes_button_create = plt.axes([0.69, 0.049, 0.29, 0.09])
     button_create = Button(axes_button_create, 'Альтернативное решение')
     button_create.on_clicked(onButtonСreateCliked)
 
-    axbox = plt.axes([0.15, 0.25, 0.10, 0.07])
-    _len_box = TextBox(axbox, 'Длина    \n стержня =', initial="7")
+    axbox = plt.axes([0.22, 0.88, 0.08, 0.06])
+    _len_box = TextBox(axbox, 'Длина стержня =', initial="7")
     _len = 7.
     _len_box.on_submit(submit_Len)
-
-    axbox = plt.axes([0.38, 0.25, 0.10, 0.07])
-    delta_t_box = TextBox(axbox, 'Шаг по \nвремени =', initial="0.01")
+    
+    axbox = plt.axes([0.22, 0.78, 0.08, 0.06])
+    time_box = TextBox(axbox, 'Время воздействия =', initial= "1")
+    time = 1.
+    time_box.on_submit(submitTime)
+    
+    axbox = plt.axes([0.22, 0.68, 0.08, 0.06])
+    delta_t_box = TextBox(axbox, 'Шаг по \n времени =', initial="0.01")
     delta_t = 0.01
     delta_t_box.on_submit(submitDeltaT)
-
-    axbox = plt.axes([0.55, 0.25, 0.10, 0.07])
+    
+    axbox = plt.axes([0.05, 0.68, 0.08, 0.06])
+    deltax_box = TextBox(axbox, ' Шаг \nпо х =', initial= "0.2")
+    delta_x = 0.2
+    deltax_box.on_submit(submitDeltaX)
+    
+    axbox = plt.axes([0.05, 0.55, 0.08, 0.06])
     bo_box = TextBox(axbox, 'b₀=', initial="0")
     b0 = 0.
     bo_box.on_submit(submitB0)
-
-    axbox = plt.axes([0.70, 0.25, 0.10, 0.07])
+    
+    axbox = plt.axes([0.05, 0.45, 0.08, 0.06])
     b1_box = TextBox(axbox, 'b₁=', initial= "-7")
     b1 = -7
     b1_box.on_submit(submitB1)
-
-    axbox = plt.axes([0.85, 0.25, 0.10, 0.07])
+    
+    axbox = plt.axes([0.05, 0.35, 0.08, 0.06])
     b2_box = TextBox(axbox, 'b₂=', initial="0")
     b2 = 0.
     b2_box.on_submit(submitB2)
-
-    axbox = plt.axes([0.15, 0.15, 0.10, 0.07])
-    time_box = TextBox(axbox, 'Время    \nвоздействия =', initial= "1")
-    time = 1.
-    time_box.on_submit(submitTime)
-
-    axbox = plt.axes([0.38, 0.15, 0.10, 0.07])
-    deltax_box = TextBox(axbox, 'Шаг    \nпо х =', initial= "0.2")
-    delta_x = 0.2
-    deltax_box.on_submit(submitDeltaX)
-
-    #axbox = plt.axes([0.55, 0.15, 0.10, 0.07])
-    #f0_box = TextBox(axbox, 'f(0)=', initial= "1/len")
-    #f0 = 1/_len #0.1429
-    #f0_box.on_submit(submitF0)
-
-    axbox = plt.axes([0.70, 0.15, 0.10, 0.07])
+    
+    axbox = plt.axes([0.22, 0.55, 0.08, 0.06])
     f1_box = TextBox(axbox, 'φ₀=', initial= "0")
     f1 = 0.
     f1_box.on_submit(submitF1)
-
-    axbox = plt.axes([0.85, 0.15, 0.10, 0.07])
+    
+    axbox = plt.axes([0.22, 0.45, 0.08, 0.06])
     f2_box = TextBox(axbox, 'φ₁=', initial= "0")
     f2 = 0.
     f2_box.on_submit(submitF2)
-
+    
     plt.show()

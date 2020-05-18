@@ -3,6 +3,7 @@ from matplotlib.widgets import Button, TextBox
 from math import cos
 from tqdm import tqdm
 from time import *
+plt.rcParams.update({'figure.figsize': '8, 6', "figure.facecolor": 'darkgoldenrod', 'axes.edgecolor': 'r'})
 
 pi = 3.1415926535
 
@@ -39,8 +40,12 @@ def onButtonAddClicked(event):
         sleep(0.1)
         pbar.update(10)
     pbar.close()
+    #tim1 = time.time()
     solution(graph_axes)
-    
+    #tim2 = time.time()
+    #time_ = tim2 - tim1
+    #print("Время выполнения: ", time_)
+
 def onButtonСreateCliked(event):
     global graph_axes
     pbar = tqdm(total=100)
@@ -54,12 +59,11 @@ def onButtonClearClicked(event):
     global graph_axes
     graph_axes.clear()
     graph_axes.grid()
-    plt.draw() 
+    plt.draw()
 
 def alternativeSolution(graph_axes):
     global x_val, resA, func_val
-    graph_axes.plot(x_val, resA, 'g')
-    graph_axes.plot(x_val, func_val, 'b')
+    graph_axes.plot(x_val, resA, 'greenyellow')
     plt.draw()
 
 def solution(graph_axes):
@@ -129,12 +133,6 @@ if __name__ == "__main__":
     resB = []
     x_val = []
 
-    pbar = tqdm(total=100)
-    for i in range(10):
-        sleep(0.1)
-        pbar.update(10)
-    pbar.close()
-    
     func_val = []
     bfunc_val = []
     slices1 = [[]]
@@ -143,6 +141,8 @@ if __name__ == "__main__":
     fig, graph_axes = plt.subplots()
     graph_axes.grid()
     fig.subplots_adjust(left=0.07, right=0.95, top=0.95, bottom=0.4)
+    graph_axes.set_xlabel('X')
+    graph_axes.set_ylabel('T')
 
     def submitTime(text):
         global time
@@ -227,7 +227,7 @@ if __name__ == "__main__":
             print("Для параметра 'delta_x' были использованы значения по умолчанию = ", delta_x)
 
     axes_button_add = plt.axes([0.37, 0.05, 0.28, 0.075])
-    button_add = Button(axes_button_add, 'Добавить')
+    button_add = Button(axes_button_add, 'Решение')
     button_add.on_clicked(onButtonAddClicked)
 
     axes_button_clear = plt.axes([0.07, 0.05, 0.28, 0.075])
@@ -235,7 +235,7 @@ if __name__ == "__main__":
     button_clear.on_clicked(onButtonClearClicked)
 
     axes_button_create = plt.axes([0.67, 0.05, 0.28, 0.075])
-    button_create = Button(axes_button_create, 'Добавить Еще')
+    button_create = Button(axes_button_create, 'Альтернативное решение')
     button_create.on_clicked(onButtonСreateCliked)
 
     axbox = plt.axes([0.15, 0.25, 0.10, 0.07])
@@ -249,22 +249,22 @@ if __name__ == "__main__":
     delta_t_box.on_submit(submitDeltaT)
 
     axbox = plt.axes([0.55, 0.25, 0.10, 0.07])
-    bo_box = TextBox(axbox, 'b(0)=', initial="0")
+    bo_box = TextBox(axbox, 'b₀=', initial="0")
     b0 = 0.
     bo_box.on_submit(submitB0)
 
     axbox = plt.axes([0.70, 0.25, 0.10, 0.07])
-    b1_box = TextBox(axbox, 'b(1)=', initial= "-7")
+    b1_box = TextBox(axbox, 'b₁=', initial= "-7")
     b1 = -7
     b1_box.on_submit(submitB1)
 
     axbox = plt.axes([0.85, 0.25, 0.10, 0.07])
-    b2_box = TextBox(axbox, 'b(2)=', initial="0")
+    b2_box = TextBox(axbox, 'b₂=', initial="0")
     b2 = 0.
     b2_box.on_submit(submitB2)
 
     axbox = plt.axes([0.15, 0.15, 0.10, 0.07])
-    time_box = TextBox(axbox, 'Время    \nвоздейств. =', initial= "1")
+    time_box = TextBox(axbox, 'Время    \nвоздействия =', initial= "1")
     time = 1.
     time_box.on_submit(submitTime)
 
@@ -273,18 +273,18 @@ if __name__ == "__main__":
     delta_x = 0.2
     deltax_box.on_submit(submitDeltaX)
 
-    axbox = plt.axes([0.55, 0.15, 0.10, 0.07])
-    f0_box = TextBox(axbox, 'f(0)=', initial= "1/len")
-    f0 = 1/_len #0.1429
-    f0_box.on_submit(submitF0)
+    #axbox = plt.axes([0.55, 0.15, 0.10, 0.07])
+    #f0_box = TextBox(axbox, 'f(0)=', initial= "1/len")
+    #f0 = 1/_len #0.1429
+    #f0_box.on_submit(submitF0)
 
     axbox = plt.axes([0.70, 0.15, 0.10, 0.07])
-    f1_box = TextBox(axbox, 'f(1)=', initial= "0")
+    f1_box = TextBox(axbox, 'φ₀=', initial= "0")
     f1 = 0.
     f1_box.on_submit(submitF1)
 
     axbox = plt.axes([0.85, 0.15, 0.10, 0.07])
-    f2_box = TextBox(axbox, 'f(2)=', initial= "0")
+    f2_box = TextBox(axbox, 'φ₁=', initial= "0")
     f2 = 0.
     f2_box.on_submit(submitF2)
 

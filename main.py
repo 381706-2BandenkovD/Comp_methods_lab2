@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, TextBox
 from math import cos
-from tqdm import tqdm
 from time import sleep
 from datetime import datetime
 import PySimpleGUI as sg
 import time
+
 plt.rcParams.update({'figure.figsize': '9.5, 6', "figure.facecolor": 'lightgoldenrodyellow', 'axes.edgecolor': 'darkgoldenrod'})
 
 pi = 3.1415926535
@@ -43,8 +43,7 @@ def onButtonAddClicked(event):
     if (k < 0.25):
         solution(graph_axes)
     else:       
-        sg.Popup('Error!', 'Шаг по x и шаг по t не удовлетворяют условию устойчивости:\nτ/(h*h) < 1/4')
-
+        sg.Popup('Предупреждение!', 'Шаг по x и шаг по t не удовлетворяют условию устойчивости:\nτ/(h*h) < 1/4')
 
 def onButtonСreateCliked(event):
     global graph_axes
@@ -174,32 +173,28 @@ if __name__ == "__main__":
         try:
             time = float(text)
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для параметра 'time' были использованы значения по умолчанию = ", time)
+            sg.Popup("Вы пытаетесь ввести не число", "Для 'time' были использованы значения по умолчанию:", time)
 
     def submit_Len(text):
         global _len
         try:
             _len = float(text)
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для шага '_len' были использованы значения по умолчанию = ", _len)
+            sg.Popup("Вы пытаетесь ввести не число", "Для  '_len' были использованы значения по умолчанию:", _len)
 
     def submitB0(text):
         global b0
         try:
             b0 = float(text)
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для начального 'b0' были использованы значения по умолчанию = ", b0)
+            sg.Popup("Вы пытаетесь ввести не число", "Для 'b0' были использованы значения по умолчанию:", b0)
 
     def submitB1(text):
         global b1
         try:
             b1 = float(text)
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для начального 'b1' были использованы значения по умолчанию = ", b1)
+            sg.Popup("Вы пытаетесь ввести не число", "Для 'b1' были использованы значения по умолчанию:", b1)
 
     def submitB2(text):
         global b2
@@ -207,49 +202,42 @@ if __name__ == "__main__":
             b2 = float(text)
             return b2
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для колличества точек 'b2' были использованы значения по умолчанию = ", b2)
+            sg.Popup("Вы пытаетесь ввести не число", "Для  'b2' были использованы значения по умолчанию:", b2)
 
     def submitF0(text):
         global f0
         try:
-            #f0 = float(text)
             f0 = 1 / _len
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для параметра 'f0' были использованы значения по умолчанию = ", f0)
-
+            sg.Popup("Вы пытаетесь ввести не число", "Для 'f0' были использованы значения по умолчанию:", f0)
+    
     def submitF1(text):
         global f1
         try:
             f1 = float(text)
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для параметра 'f1' были использованы значения по умолчанию = ", f1)
+            sg.Popup("Вы пытаетесь ввести не число", "Для 'f1' были использованы значения по умолчанию:", f1)
 
     def submitF2(text):
         global f2
         try:
             f2 = float(text)
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для параметра 'f2' были использованы значения по умолчанию = ", f2)
+            sg.Popup("Вы пытаетесь ввести не число", "Для параметра 'f2' были использованы значения по умолчанию:", f2)
 
     def submitDeltaT(text):
         global delta_t
         try:
             delta_t = float(text)
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для параметра 'delta_t' были использованы значения по умолчанию = ", delta_t)
+            sg.Popup("Вы пытаетесь ввести не число", "Для параметра 'delta_t' были использованы значения по умолчанию:", delta_t)
 
     def submitDeltaX(text):
         global delta_x
         try:
             delta_x = float(text)
         except ValueError:
-            print("Вы пытаетесь ввести не число")
-            print("Для параметра 'delta_x' были использованы значения по умолчанию = ", delta_x)
+            sg.Popup("Вы пытаетесь ввести не число", "Для параметра 'delta_x' были использованы значения по умолчанию:", delta_x)
 
     axes_button_add = plt.axes([0.37, 0.049, 0.29, 0.09])
     button_add = Button(axes_button_add, 'Решение')
@@ -264,8 +252,8 @@ if __name__ == "__main__":
     button_create.on_clicked(onButtonСreateCliked)
 
     axbox = plt.axes([0.22, 0.88, 0.08, 0.06])
-    _len_box = TextBox(axbox, 'Длина стержня =', initial="7")
-    _len = 7.
+    _len_box = TextBox(axbox, 'Длина стержня =', initial="13")
+    _len = 13.
     _len_box.on_submit(submit_Len)
     
     axbox = plt.axes([0.22, 0.78, 0.08, 0.06])
@@ -279,8 +267,8 @@ if __name__ == "__main__":
     delta_t_box.on_submit(submitDeltaT)
     
     axbox = plt.axes([0.05, 0.68, 0.08, 0.06])
-    deltax_box = TextBox(axbox, ' Шаг \nпо х =', initial= "0.2")
-    delta_x = 0.2
+    deltax_box = TextBox(axbox, ' Шаг \nпо х =', initial= "0.22")
+    delta_x = 0.22
     deltax_box.on_submit(submitDeltaX)
     
     axbox = plt.axes([0.05, 0.55, 0.08, 0.06])
